@@ -30,7 +30,7 @@ public:
     // TODO: Implement the collision detection
     [[nodiscard]] bool IfCollides(const std::shared_ptr<Character>& other) const {
         (void) other;
-        return false;
+        return true;
     }
 
     // TODO: Add and implement more methods and properties as needed to finish Giraffe Adventure.

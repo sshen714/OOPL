@@ -5,7 +5,7 @@
 void App::Start() {
     LOG_TRACE("Start");
 
-    m_Giraffe = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Character/gray.png");
+    m_Giraffe = std::make_shared<Character>(GA_RESOURCE_DIR"/Image/Character/giraffe.png");
     m_Giraffe->SetPosition({-112.5f, -140.5f});
     m_Giraffe->SetZIndex(50);
     m_Root.AddChild(m_Giraffe);
@@ -23,7 +23,7 @@ void App::Start() {
         beeImages.emplace_back(GA_RESOURCE_DIR"/Image/Character/bee_" + std::to_string(i + 1) + ".png");
     }
 
-    m_Bee = std::make_shared<AnimatedCharacter>(beeImages);
+    m_Bee = std::make_shared<AnimatedCharacter>(beeImages,500);
     m_Bee->SetZIndex(5);
     m_Bee->SetVisible(false);
     m_Root.AddChild(m_Bee);
@@ -41,6 +41,16 @@ void App::Start() {
     m_PRM = std::make_shared<PhaseResourceManger>();
     m_Root.AddChildren(m_PRM->GetChildren());
 
+    std::vector<std::string> ballImages;
+    for (int i = 3; i >0; --i) {
+        ballImages.emplace_back(GA_RESOURCE_DIR"/Image/Character/ball-" + std::to_string(i) + ".png");
+        if (i==1){ballImages.emplace_back(GA_RESOURCE_DIR"/Image/Character/ball-ok.png");}
+    }
+    ballImages.emplace_back(GA_RESOURCE_DIR"/Image/Character/ball-ok.png");
+    m_Ball= std::make_shared<AnimatedCharacter>(ballImages,1000);
+    m_Ball->SetZIndex(5);
+    m_Ball->SetVisible(false);
+    m_Root.AddChild(m_Ball);
 
     m_CurrentState = State::UPDATE;
 }
