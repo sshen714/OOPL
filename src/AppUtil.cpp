@@ -1,95 +1,95 @@
 #include "AppUtil.hpp"
 #include "App.hpp"
-
 #include "Util/Logger.hpp"
 
-/**
- * @brief The function to validate the tasks.
- * @warning Do not modify this function.
- * @note See README.md for the task details.
- */
-void App::ValidTask() {
-    bool isBeeLooping;
-    bool isBeePlaying;
-    LOG_DEBUG("Validating the task {}", static_cast<int>(m_Phase));
-    switch (m_Phase) {
-        case Phase::CHANGE_CHARACTER_IMAGE:
-            if (m_Giraffe->GetImagePath() == GA_RESOURCE_DIR"/Image/Character/giraffe.png") {
-                m_Phase = Phase::ABLE_TO_MOVE;
-                m_Giraffe->SetPosition({-112.5f, -140.5f});
+bool IsStandingOnPlatform(const std::shared_ptr<Character>& player,
+                          const std::shared_ptr<Character>& platform,
+                          float velocityY) {
+    if (!platform->GetVisibility()) return false;
 
-                m_PRM->NextPhase();
-            } else {
-                LOG_DEBUG("The image is not correct");
-                LOG_DEBUG("The image path is {} instead.", m_Giraffe->GetImagePath());
-            }
-            break;
+    auto playerPos = player->GetPosition();
+    auto platformPos = platform->GetPosition();
+    auto playerSize = player->GetSize();
+    auto platformSize = platform->GetSize();
 
-        case Phase::ABLE_TO_MOVE:
-            if (isInsideTheSquare(*m_Giraffe)) {
-                m_Phase = Phase::COLLIDE_DETECTION;
-                m_Giraffe->SetPosition({-112.5f, -140.5f});
-                m_Chest->SetVisible(true);
+    float playerBottom = playerPos.y - playerSize.y / 2.0f;
+    float platformTop = platformPos.y + platformSize.y / 2.0f;
 
-                m_PRM->NextPhase();
-            } else {
-                LOG_DEBUG("The giraffe is not inside the square");
-            }
-            break;
+    float playerLeft = playerPos.x - playerSize.x / 2.0f;
+    float playerRight = playerPos.x + playerSize.x / 2.0f;
+    float platformLeft = platformPos.x - platformSize.x / 2.0f;
+    float platformRight = platformPos.x + platformSize.x / 2.0f;
 
-        case Phase::COLLIDE_DETECTION:
-            if (m_Giraffe->IfCollides(m_Chest)) {
-                if (m_Chest->GetVisibility()) {
-                    LOG_DEBUG("The giraffe collided with the chest but the chest is still visible");
-                } else {
-                    m_Phase = Phase::BEE_ANIMATION;
-                    m_Giraffe->SetVisible(false);
-                    m_Bee->SetVisible(true);
+    bool horizontallyAligned = playerRight >= platformLeft && playerLeft <= platformRight;
+    bool verticallyAligned = playerBottom >= platformTop - 5.0f &&
+                             playerBottom <= platformTop + 10.0f;
 
-                    m_PRM->NextPhase();
-                }
-            } else {
-                LOG_DEBUG("The giraffe is not colliding with the chest");
-            }
-            break;
-
-        case Phase::BEE_ANIMATION:
-            isBeeLooping = m_Bee->IsLooping();
-            isBeePlaying = m_Bee->IsPlaying();
-
-            if (isBeeLooping && isBeePlaying) {
-                m_Phase = Phase::OPEN_THE_DOORS;
-                m_Giraffe->SetPosition({-112.5f, -140.5f});
-                m_Giraffe->SetVisible(true);
-                m_Bee->SetVisible(false);
-                std::for_each(m_Doors.begin(), m_Doors.end(), [](const auto& door) { door->SetVisible(true); });
-
-                m_PRM->NextPhase();
-            } else {
-                LOG_DEBUG("The bee animation is {} but not {}", isBeeLooping ? "looping" : "playing",
-                          isBeeLooping ? "playing" : "looping");
-            }
-            break;
-
-        case Phase::OPEN_THE_DOORS:
-            if (AreAllDoorsOpen(m_Doors)) {
-                m_Phase = Phase::COUNTDOWN;
-                std::for_each(m_Doors.begin(), m_Doors.end(), [](const auto& door) { door->SetVisible(false); });
-                m_Giraffe->SetVisible(false);
-
-                m_PRM->NextPhase();
-            } else {
-                LOG_DEBUG("At least one door is not open");
-            }
-            break;
-
-        case Phase::COUNTDOWN:
-            if (m_Ball->IfAnimationEnds()) {
-                LOG_DEBUG("Congratulations! You have completed Giraffe Adventure!");
-                m_CurrentState = State::END;
-            } else{
-                LOG_DEBUG("The ball animation is not ended");
-            }
-            break;
-    }
+    return horizontallyAligned && verticallyAligned && velocityY <= 0.0f;
 }
+
+bool IsHittingPlatformCeiling(const std::shared_ptr<Character>& player,
+                               const std::shared_ptr<Character>& platform,
+                               float velocityY) {
+    if (!platform->GetVisibility()) return false;
+
+    auto playerPos = player->GetPosition();
+    auto platformPos = platform->GetPosition();
+    auto playerSize = player->GetSize();
+    auto platformSize = platform->GetSize();
+
+    float playerTop = playerPos.y + playerSize.y / 2.0f;
+    float platformBottom = platformPos.y - platformSize.y / 2.0f;
+
+    float playerLeft = playerPos.x - playerSize.x / 2.0f;
+    float playerRight = playerPos.x + playerSize.x / 2.0f;
+    float platformLeft = platformPos.x - platformSize.x / 2.0f;
+    float platformRight = platformPos.x + platformSize.x / 2.0f;
+
+    bool horizontallyAligned = playerRight >= platformLeft && playerLeft <= platformRight;
+    bool verticallyTouching = playerTop >= platformBottom - 5.0f &&
+                              playerTop <= platformBottom + 5.0f;
+
+    return horizontallyAligned && verticallyTouching && velocityY > 0.0f;
+}
+
+bool IsHittingPlatformLeft(std::shared_ptr<Character> player, std::shared_ptr<Character> platform) {
+    auto playerPos = player->GetPosition();
+    auto platformPos = platform->GetPosition();
+
+    float playerRight = playerPos.x + player->GetSize().x / 2.0f;
+    float playerTop = playerPos.y + player->GetSize().y / 2.0f;
+    float playerBottom = playerPos.y - player->GetSize().y / 2.0f;
+
+    float platformLeft = platformPos.x - platform->GetSize().x / 2.0f;
+    float platformTop = platformPos.y + platform->GetSize().y / 2.0f;
+    float platformBottom = platformPos.y - platform->GetSize().y / 2.0f;
+
+    bool horizontallyTouching = std::abs(playerRight - platformLeft) < 5.0f; // 邊界靠近
+    bool verticallyOverlapping = (playerBottom < platformTop) && (playerTop > platformBottom);
+
+    return horizontallyTouching && verticallyOverlapping;
+}
+
+bool IsHittingPlatformRight(std::shared_ptr<Character> player, std::shared_ptr<Character> platform) {
+    auto playerPos = player->GetPosition();
+    auto platformPos = platform->GetPosition();
+
+    float playerLeft = playerPos.x - player->GetSize().x / 2.0f;
+    float playerTop = playerPos.y + player->GetSize().y / 2.0f;
+    float playerBottom = playerPos.y - player->GetSize().y / 2.0f;
+
+    float platformRight = platformPos.x + platform->GetSize().x / 2.0f;
+    float platformTop = platformPos.y + platform->GetSize().y / 2.0f;
+    float platformBottom = platformPos.y - platform->GetSize().y / 2.0f;
+
+    bool horizontallyTouching = std::abs(playerLeft - platformRight) < 5.0f;
+    bool verticallyOverlapping = (playerBottom < platformTop) && (playerTop > platformBottom);
+
+    return horizontallyTouching && verticallyOverlapping;
+}
+
+
+
+
+
+

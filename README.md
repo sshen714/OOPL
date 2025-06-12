@@ -1,18 +1,24 @@
-# Giraffe Adventure
-## Description
-This is a [PTSD](https://github.com/ntut-open-source-club/practical-tools-for-simple-design) framework practice for students taking the OOPL course from NTUT.
+# PTSD Template
 
-## Installation
-1. Clone the repository
-```bash
-git clone https://github.com/ntut-open-source-club/PTSD-Practice-Giraffe-Adventure
-```
-## Tasks
-- [ ] Replace the image of m_giraffe with giraffe.png in Resources!,
-- [ ] Make the giraffe move into the red area using the keyboard!
-- [ ] Make the chest disappear when the giraffe touches it!
-- [ ] Write a program to give your bee friend an animation!
-- [ ] Write a program to open the door when your character touches it!
-- [ ] Design a program to countdown, stop animation after OK display
+This is a [PTSD](https://github.com/ntut-open-source-club/practical-tools-for-simple-design) framework template for students taking OOPL2024s.
 
-Hint:  Look for `TODO`s if you are lost.
+## Quick Start
+
+1. Use this template to create a new repository
+   ![github screenshot](https://github.com/ntut-rick/ptsd-template/assets/126899559/ef62242f-03ed-481d-b858-12b730c09beb)
+
+2. Clone your repository
+
+   ```bash
+   git clone YOUR_GIT_URL --recursive
+   ```
+
+3. Build your project
+
+  > [!WARNING]
+  > Please build your project in `Debug` because our `Release` path is broken D:
+   
+   ```sh
+   cmake -DCMAKE_BUILD_TYPE=Debug -B build # -G Ninja
+   ```
+   better read [PTSD README](https://github.com/ntut-open-source-club/practical-tools-for-simple-design)
